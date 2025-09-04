@@ -22,40 +22,47 @@ export const DataModal = ({ float, isOpen, onClose }: DataModalProps) => {
   if (!isOpen || !float) return null
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <Card className="w-full max-w-6xl max-h-[90vh] overflow-hidden">
-        <CardHeader className="flex flex-row items-center justify-between">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-center justify-center p-6">
+      <Card className="w-full max-w-6xl max-h-[90vh] overflow-hidden rounded-2xl shadow-2xl border-slate-200/50">
+        <CardHeader className="flex flex-row items-center justify-between bg-gradient-to-r from-blue-50 to-indigo-50 rounded-t-2xl border-b border-slate-200/50 p-6 flex-shrink-0">
           <div>
-            <CardTitle className="flex items-center gap-2">
-              <Waves className="h-5 w-5 text-blue-600" />
+            <CardTitle className="flex items-center gap-3 text-lg">
+              <div className="p-2 bg-blue-100 rounded-lg">
+                <Waves className="h-5 w-5 text-blue-600" />
+              </div>
               Float {float.id} - Scientific Data Analysis
             </CardTitle>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-slate-600 mt-2">
               Location: {float.lat.toFixed(2)}°, {float.lon.toFixed(2)}° | Last Report:{" "}
               {float.lastReported.toLocaleDateString()}
             </p>
           </div>
-          <Button variant="ghost" size="sm" onClick={onClose}>
-            <X className="h-4 w-4" />
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={onClose}
+            className="rounded-full h-10 w-10 p-0 hover:bg-white/80"
+          >
+            <X className="h-5 w-5" />
           </Button>
         </CardHeader>
-        <CardContent className="overflow-y-auto max-h-[calc(90vh-8rem)]">
+        <CardContent className="overflow-y-auto p-6 bg-white" style={{ maxHeight: 'calc(90vh - 8rem)' }}>
           <Tabs defaultValue="profiles" className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="profiles">Depth Profiles</TabsTrigger>
-              <TabsTrigger value="timeseries">Time Series</TabsTrigger>
-              <TabsTrigger value="tsdiagram">T-S Diagram</TabsTrigger>
-              <TabsTrigger value="crosssection">Cross Section</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-4 bg-slate-100 rounded-xl p-1 mb-6">
+              <TabsTrigger value="profiles" className="rounded-lg">Depth Profiles</TabsTrigger>
+              <TabsTrigger value="timeseries" className="rounded-lg">Time Series</TabsTrigger>
+              <TabsTrigger value="tsdiagram" className="rounded-lg">T-S Diagram</TabsTrigger>
+              <TabsTrigger value="crosssection" className="rounded-lg">Cross Section</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="profiles" className="mt-4">
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <TabsContent value="profiles" className="mt-0">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Temperature vs Depth */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-sm">Temperature Profile</CardTitle>
+                <Card className="rounded-xl shadow-sm border-slate-200/50">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-sm font-semibold text-slate-700">Temperature Profile</CardTitle>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="pt-0">
                     <div className="h-80">
                       <ResponsiveContainer width="100%" height="100%">
                         <LineChart data={mockProfileData.temperature}>
@@ -78,11 +85,11 @@ export const DataModal = ({ float, isOpen, onClose }: DataModalProps) => {
                 </Card>
 
                 {/* Salinity vs Depth */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-sm">Salinity Profile</CardTitle>
+                <Card className="rounded-xl shadow-sm border-slate-200/50">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-sm font-semibold text-slate-700">Salinity Profile</CardTitle>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="pt-0">
                     <div className="h-80">
                       <ResponsiveContainer width="100%" height="100%">
                         <LineChart data={mockProfileData.salinity}>
@@ -106,11 +113,11 @@ export const DataModal = ({ float, isOpen, onClose }: DataModalProps) => {
                 </Card>
 
                 {/* Pressure vs Depth */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-sm">Pressure Profile</CardTitle>
+                <Card className="rounded-xl shadow-sm border-slate-200/50">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-sm font-semibold text-slate-700">Pressure Profile</CardTitle>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="pt-0">
                     <div className="h-80">
                       <ResponsiveContainer width="100%" height="100%">
                         <LineChart data={mockProfileData.temperature}>
@@ -134,12 +141,12 @@ export const DataModal = ({ float, isOpen, onClose }: DataModalProps) => {
               </div>
             </TabsContent>
 
-            <TabsContent value="timeseries" className="mt-4">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <TabsContent value="timeseries" className="mt-0">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Temperature Time Series */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-sm">Temperature Time Series</CardTitle>
+                <Card className="rounded-xl shadow-sm border-slate-200/50">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-sm font-semibold text-slate-700">Temperature Time Series</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="h-80">
@@ -164,11 +171,11 @@ export const DataModal = ({ float, isOpen, onClose }: DataModalProps) => {
                 </Card>
 
                 {/* Salinity Time Series */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-sm">Salinity Time Series</CardTitle>
+                <Card className="rounded-xl shadow-sm border-slate-200/50">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-sm font-semibold text-slate-700">Salinity Time Series</CardTitle>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="pt-0">
                     <div className="h-80">
                       <ResponsiveContainer width="100%" height="100%">
                         <LineChart data={mockProfileData.timeSeries}>
@@ -192,15 +199,15 @@ export const DataModal = ({ float, isOpen, onClose }: DataModalProps) => {
               </div>
             </TabsContent>
 
-            <TabsContent value="tsdiagram" className="mt-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-sm">Temperature-Salinity Diagram</CardTitle>
-                  <p className="text-xs text-muted-foreground">
+            <TabsContent value="tsdiagram" className="mt-0">
+              <Card className="rounded-xl shadow-sm border-slate-200/50">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-semibold text-slate-700">Temperature-Salinity Diagram</CardTitle>
+                  <p className="text-xs text-slate-600">
                     Scatter plot showing the relationship between temperature and salinity at different depths
                   </p>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="pt-0">
                   <div className="h-96">
                     <ResponsiveContainer width="100%" height="100%">
                       <ScatterChart data={mockProfileData.tsDiagram}>
@@ -233,13 +240,13 @@ export const DataModal = ({ float, isOpen, onClose }: DataModalProps) => {
               </Card>
             </TabsContent>
 
-            <TabsContent value="crosssection" className="mt-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-sm">Latitude vs Depth Cross Section</CardTitle>
-                  <p className="text-xs text-muted-foreground">Temperature distribution across latitudes and depths</p>
+            <TabsContent value="crosssection" className="mt-0">
+              <Card className="rounded-xl shadow-sm border-slate-200/50">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-semibold text-slate-700">Latitude vs Depth Cross Section</CardTitle>
+                  <p className="text-xs text-slate-600">Temperature distribution across latitudes and depths</p>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="pt-0">
                   <div className="h-96">
                     <ResponsiveContainer width="100%" height="100%">
                       <ScatterChart data={mockProfileData.crossSection}>

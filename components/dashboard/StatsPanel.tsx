@@ -11,7 +11,7 @@ interface StatsPanelProps {
 
 export const StatsPanel = ({ floats }: StatsPanelProps) => {
   return (
-    <div className="h-32 border-t border-slate-200 bg-white/80 backdrop-blur-md p-4 shadow-sm">
+    <div className="h-32 bg-white/80 backdrop-blur-md mx-4 mb-4 rounded-2xl shadow-lg border border-white/50 p-4 flex-shrink-0">
       <div className="grid grid-cols-4 gap-4 h-full">
         <StatsCard
           title="Total Profiles"
