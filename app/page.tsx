@@ -5,7 +5,7 @@ import { Waves, Globe, BarChart3, MessageSquare, ArrowRight, Zap, Database, User
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-stone-50 relative overflow-hidden">
       {/* Animated background elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 left-10 w-72 h-72 bg-cyan-500/5 rounded-full blur-3xl animate-pulse"></div>
@@ -14,7 +14,7 @@ export default function LandingPage() {
       </div>
 
       {/* Header */}
-      <header className="relative z-10 border-b border-gray-200 bg-white/80 backdrop-blur-xl shadow-sm">
+      <header className="relative z-10 border-b border-gray-200 bg-slate-50/90 backdrop-blur-xl shadow-sm">
         <div className="container mx-auto px-6 py-5 flex items-center justify-between">
           <div className="flex items-center gap-3 group">
             <div className="relative">
@@ -67,7 +67,7 @@ export default function LandingPage() {
                 <ArrowRight className="ml-3 h-5 w-5 transition-transform group-hover:translate-x-1" />
               </Button>
             </Link>
-            <Button size="lg" variant="outline" className="border-2 border-gray-300 text-gray-700 hover:bg-gray-50 bg-white backdrop-blur-sm transition-all duration-300 hover:border-cyan-400 hover:shadow-lg px-8 py-6 text-lg font-semibold group">
+            <Button size="lg" variant="outline" className="border-2 border-gray-300 text-gray-700 hover:bg-gray-100 bg-slate-50 backdrop-blur-sm transition-all duration-300 hover:border-cyan-400 hover:shadow-lg px-8 py-6 text-lg font-semibold group">
               <BarChart3 className="mr-3 h-6 w-6 transition-transform group-hover:scale-110" />
               View Demo
             </Button>
@@ -113,7 +113,7 @@ export default function LandingPage() {
         </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          <Card className="group bg-gradient-to-br from-white to-gray-50 border border-gray-200 shadow-lg hover:shadow-xl transition-all duration-500 hover:border-cyan-300 hover:-translate-y-2">
+          <Card className="group bg-gradient-to-br from-slate-50 to-gray-100 border border-gray-200 shadow-lg hover:shadow-xl transition-all duration-500 hover:border-cyan-300 hover:-translate-y-2">
             <CardHeader className="pb-4">
               <div className="relative mb-4">
                 <Globe className="h-10 w-10 text-cyan-600 transition-transform group-hover:scale-110 group-hover:rotate-12 duration-300" />
@@ -128,7 +128,7 @@ export default function LandingPage() {
             </CardHeader>
           </Card>
 
-          <Card className="group bg-gradient-to-br from-white to-gray-50 border border-gray-200 shadow-lg hover:shadow-xl transition-all duration-500 hover:border-indigo-300 hover:-translate-y-2">
+          <Card className="group bg-gradient-to-br from-slate-50 to-gray-100 border border-gray-200 shadow-lg hover:shadow-xl transition-all duration-500 hover:border-indigo-300 hover:-translate-y-2">
             <CardHeader className="pb-4">
               <div className="relative mb-4">
                 <MessageSquare className="h-10 w-10 text-indigo-600 transition-transform group-hover:scale-110 duration-300" />
@@ -143,7 +143,7 @@ export default function LandingPage() {
             </CardHeader>
           </Card>
 
-          <Card className="group bg-gradient-to-br from-white to-gray-50 border border-gray-200 shadow-lg hover:shadow-xl transition-all duration-500 hover:border-emerald-300 hover:-translate-y-2">
+          <Card className="group bg-gradient-to-br from-slate-50 to-gray-100 border border-gray-200 shadow-lg hover:shadow-xl transition-all duration-500 hover:border-emerald-300 hover:-translate-y-2">
             <CardHeader className="pb-4">
               <div className="relative mb-4">
                 <BarChart3 className="h-10 w-10 text-emerald-600 transition-transform group-hover:scale-110 duration-300" />
@@ -158,7 +158,7 @@ export default function LandingPage() {
             </CardHeader>
           </Card>
 
-          <Card className="group bg-gradient-to-br from-white to-gray-50 border border-gray-200 shadow-lg hover:shadow-xl transition-all duration-500 hover:border-amber-300 hover:-translate-y-2">
+          <Card className="group bg-gradient-to-br from-slate-50 to-gray-100 border border-gray-200 shadow-lg hover:shadow-xl transition-all duration-500 hover:border-amber-300 hover:-translate-y-2">
             <CardHeader className="pb-4">
               <div className="relative mb-4">
                 <Zap className="h-10 w-10 text-amber-600 transition-transform group-hover:scale-110 duration-300" />
@@ -173,7 +173,7 @@ export default function LandingPage() {
             </CardHeader>
           </Card>
 
-          <Card className="group bg-gradient-to-br from-white to-gray-50 border border-gray-200 shadow-lg hover:shadow-xl transition-all duration-500 hover:border-blue-300 hover:-translate-y-2">
+          <Card className="group bg-gradient-to-br from-slate-50 to-gray-100 border border-gray-200 shadow-lg hover:shadow-xl transition-all duration-500 hover:border-blue-300 hover:-translate-y-2">
             <CardHeader className="pb-4">
               <div className="relative mb-4">
                 <Database className="h-10 w-10 text-blue-600 transition-transform group-hover:scale-110 duration-300" />
@@ -188,7 +188,7 @@ export default function LandingPage() {
             </CardHeader>
           </Card>
 
-          <Card className="group bg-gradient-to-br from-white to-gray-50 border border-gray-200 shadow-lg hover:shadow-xl transition-all duration-500 hover:border-violet-300 hover:-translate-y-2">
+          <Card className="group bg-gradient-to-br from-slate-50 to-gray-100 border border-gray-200 shadow-lg hover:shadow-xl transition-all duration-500 hover:border-violet-300 hover:-translate-y-2">
             <CardHeader className="pb-4">
               <div className="relative mb-4">
                 <Users className="h-10 w-10 text-violet-600 transition-transform group-hover:scale-110 duration-300" />
@@ -208,7 +208,7 @@ export default function LandingPage() {
       {/* CTA Section */}
       <section className="relative z-10 container mx-auto px-6 py-24">
         <div className="max-w-4xl mx-auto text-center">
-          <Card className="relative bg-gradient-to-br from-cyan-50 to-blue-50 border border-cyan-200 shadow-xl overflow-hidden group hover:border-cyan-300 transition-all duration-500">
+          <Card className="relative bg-gradient-to-br from-slate-50 to-blue-50 border border-cyan-200 shadow-xl overflow-hidden group hover:border-cyan-300 transition-all duration-500">
             {/* Animated background */}
             <div className="absolute inset-0 bg-gradient-to-r from-cyan-100/20 to-blue-100/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
             
@@ -236,7 +236,7 @@ export default function LandingPage() {
                     <ArrowRight className="ml-3 h-5 w-5 transition-transform group-hover:translate-x-1" />
                   </Button>
                 </Link>
-                <Button size="lg" variant="outline" className="border-2 border-gray-300 text-gray-700 hover:bg-gray-50 bg-white backdrop-blur-sm transition-all duration-300 hover:border-cyan-400 px-8 py-6 text-lg font-semibold">
+                <Button size="lg" variant="outline" className="border-2 border-gray-300 text-gray-700 hover:bg-gray-100 bg-slate-50 backdrop-blur-sm transition-all duration-300 hover:border-cyan-400 px-8 py-6 text-lg font-semibold">
                   Learn More
                 </Button>
               </div>
@@ -262,7 +262,7 @@ export default function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="relative z-10 border-t border-gray-200 bg-gray-50/80 backdrop-blur-xl">
+      <footer className="relative z-10 border-t border-gray-200 bg-stone-50/90 backdrop-blur-xl">
         <div className="container mx-auto px-6 py-12">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
             {/* Logo and description */}
