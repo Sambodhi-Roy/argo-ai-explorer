@@ -20,6 +20,80 @@ import { Send, Download, X, Waves, Loader2, MessageSquare, BarChart3, Globe } fr
 import * as THREE from "three"
 import Link from "next/link"
 
+// Type definitions
+interface Float {
+  id: string
+  lat: number
+  lon: number
+  lastReported: Date
+  isHighlighted: boolean
+  trajectory: {
+    lat: number
+    lon: number
+    date: Date
+  }[]
+}
+
+interface Message {
+  id: number
+  text: string
+  isUser: boolean
+  suggestions: string[]
+}
+
+interface ProfileDataPoint {
+  depth: number
+  value: number
+  pressure: number
+}
+
+interface TimeSeriesDataPoint {
+  date: string
+  temperature: number
+  salinity: number
+}
+
+interface TSDiagramDataPoint {
+  temperature: number
+  salinity: number
+  depth: number
+}
+
+interface CrossSectionDataPoint {
+  lat: number
+  depth: number
+  temperature: number
+}
+
+interface ProfileData {
+  temperature: ProfileDataPoint[]
+  salinity: ProfileDataPoint[]
+  timeSeries: TimeSeriesDataPoint[]
+  tsDiagram: TSDiagramDataPoint[]
+  crossSection: CrossSectionDataPoint[]
+}
+
+interface Globe3DProps {
+  floats: Float[]
+  selectedFloat: Float | null
+  onFloatClick: (float: Float) => void
+  focusRegion?: string
+}
+
+interface ChatMessageProps {
+  message?: string
+  isUser?: boolean
+  isLoading?: boolean
+  suggestions?: string[]
+  onSuggestionClick?: (suggestion: string) => void
+}
+
+interface DataModalProps {
+  float: Float | null
+  isOpen: boolean
+  onClose: () => void
+}
+
 const mockFloats = Array.from({ length: 200 }, (_, i) => ({
   id: `ARGO_${String(i + 1).padStart(4, "0")}`,
   lat: (Math.random() - 0.5) * 160, // -80 to 80 latitude
@@ -101,13 +175,13 @@ const generateRealisticProfileData = () => {
 const mockProfileData = generateRealisticProfileData()
 
 // 3D Globe Component
-const Globe3D = ({ floats, selectedFloat, onFloatClick, focusRegion }) => {
-  const mountRef = useRef(null)
-  const sceneRef = useRef(null)
-  const rendererRef = useRef(null)
-  const globeRef = useRef(null)
-  const floatPointsRef = useRef([])
-  const cameraRef = useRef(null)
+const Globe3D = ({ floats, selectedFloat, onFloatClick, focusRegion }: Globe3DProps) => {
+  const mountRef = useRef<HTMLDivElement>(null)
+  const sceneRef = useRef<THREE.Scene | null>(null)
+  const rendererRef = useRef<THREE.WebGLRenderer | null>(null)
+  const globeRef = useRef<THREE.Mesh | null>(null)
+  const floatPointsRef = useRef<(THREE.Mesh | null)[]>([])
+  const cameraRef = useRef<THREE.PerspectiveCamera | null>(null)
   const controlsRef = useRef({
     isDragging: false,
     previousMousePosition: { x: 0, y: 0 },
@@ -173,14 +247,16 @@ const Globe3D = ({ floats, selectedFloat, onFloatClick, focusRegion }) => {
 
     camera.position.z = 15
 
-    const handleMouseDown = (event) => {
+    const handleMouseDown = (event: MouseEvent) => {
       event.preventDefault()
       controlsRef.current.isDragging = true
       controlsRef.current.previousMousePosition = { x: event.clientX, y: event.clientY }
-      renderer.domElement.style.cursor = "grabbing"
+      if (rendererRef.current) {
+        rendererRef.current.domElement.style.cursor = "grabbing"
+      }
     }
 
-    const handleMouseMove = (event) => {
+    const handleMouseMove = (event: MouseEvent) => {
       event.preventDefault()
       if (!controlsRef.current.isDragging) return
 
@@ -191,15 +267,17 @@ const Globe3D = ({ floats, selectedFloat, onFloatClick, focusRegion }) => {
 
       // Apply rotation to globe and all float points together
       const rotationSpeed = 0.005
-      globe.rotation.y += deltaMove.x * rotationSpeed
-      globe.rotation.x += deltaMove.y * rotationSpeed
+      if (globeRef.current) {
+        globeRef.current.rotation.y += deltaMove.x * rotationSpeed
+        globeRef.current.rotation.x += deltaMove.y * rotationSpeed
 
-      // Clamp vertical rotation to prevent flipping
-      globe.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, globe.rotation.x))
+        // Clamp vertical rotation to prevent flipping
+        globeRef.current.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, globeRef.current.rotation.x))
+      }
 
       // Update float points to rotate with globe
       floatPointsRef.current.forEach((point) => {
-        if (point) {
+        if (point && point.userData && globeRef.current) {
           // Apply the same rotation to each point
           const phi = (90 - point.userData.floatData.lat) * (Math.PI / 180)
           const theta = (point.userData.floatData.lon + 180) * (Math.PI / 180)
@@ -207,7 +285,7 @@ const Globe3D = ({ floats, selectedFloat, onFloatClick, focusRegion }) => {
 
           // Create rotation matrix
           const rotationMatrix = new THREE.Matrix4()
-          rotationMatrix.makeRotationFromEuler(new THREE.Euler(globe.rotation.x, globe.rotation.y, globe.rotation.z))
+          rotationMatrix.makeRotationFromEuler(new THREE.Euler(globeRef.current.rotation.x, globeRef.current.rotation.y, globeRef.current.rotation.z))
 
           // Calculate original position
           const originalPos = new THREE.Vector3(
@@ -225,29 +303,36 @@ const Globe3D = ({ floats, selectedFloat, onFloatClick, focusRegion }) => {
       controlsRef.current.previousMousePosition = { x: event.clientX, y: event.clientY }
     }
 
-    const handleMouseUp = (event) => {
+    const handleMouseUp = (event: MouseEvent) => {
       event.preventDefault()
       controlsRef.current.isDragging = false
-      renderer.domElement.style.cursor = "grab"
+      if (rendererRef.current) {
+        rendererRef.current.domElement.style.cursor = "grab"
+      }
     }
 
-    const handleClick = (event) => {
+    const handleClick = (event: MouseEvent) => {
       // Only handle click if not dragging
       if (controlsRef.current.isDragging) return
 
       const raycaster = new THREE.Raycaster()
       const mouse = new THREE.Vector2()
 
-      const rect = renderer.domElement.getBoundingClientRect()
+      if (!rendererRef.current) return
+
+      const rect = rendererRef.current.domElement.getBoundingClientRect()
       mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1
       mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1
 
-      raycaster.setFromCamera(mouse, camera)
-      const intersects = raycaster.intersectObjects(floatPointsRef.current.filter(Boolean))
+      if (cameraRef.current) {
+        raycaster.setFromCamera(mouse, cameraRef.current)
+        const validPoints = floatPointsRef.current.filter((point): point is THREE.Mesh => point !== null)
+        const intersects = raycaster.intersectObjects(validPoints)
 
-      if (intersects.length > 0) {
-        const clickedFloat = intersects[0].object.userData.floatData
-        onFloatClick(clickedFloat)
+        if (intersects.length > 0) {
+          const clickedFloat = intersects[0].object.userData.floatData
+          onFloatClick(clickedFloat)
+        }
       }
     }
 
@@ -323,7 +408,7 @@ const Globe3D = ({ floats, selectedFloat, onFloatClick, focusRegion }) => {
   // Update float highlighting
   useEffect(() => {
     floatPointsRef.current.forEach((point, index) => {
-      if (point && floats[index]) {
+      if (point && floats[index] && point.material instanceof THREE.MeshBasicMaterial) {
         point.material.color.setHex(floats[index].isHighlighted ? 0xffff00 : 0x00ffff)
         point.material.opacity = floats[index].isHighlighted ? 1 : 0.7
       }
@@ -334,7 +419,7 @@ const Globe3D = ({ floats, selectedFloat, onFloatClick, focusRegion }) => {
 }
 
 // Chat Message Component
-const ChatMessage = ({ message, isUser, isLoading, suggestions, onSuggestionClick }) => {
+const ChatMessage = ({ message, isUser, isLoading, suggestions, onSuggestionClick }: ChatMessageProps) => {
   if (isLoading) {
     return (
       <div className="flex items-center space-x-2 mb-4">
@@ -354,12 +439,12 @@ const ChatMessage = ({ message, isUser, isLoading, suggestions, onSuggestionClic
         <p className="text-sm">{message}</p>
         {suggestions && suggestions.length > 0 && (
           <div className="flex flex-wrap gap-2 mt-3">
-            {suggestions.map((suggestion, index) => (
+            {suggestions.map((suggestion: string, index: number) => (
               <Button
                 key={index}
                 variant="outline"
                 size="sm"
-                onClick={() => onSuggestionClick(suggestion)}
+                onClick={() => onSuggestionClick?.(suggestion)}
                 className="text-xs"
               >
                 {suggestion}
@@ -372,7 +457,7 @@ const ChatMessage = ({ message, isUser, isLoading, suggestions, onSuggestionClic
   )
 }
 
-const DataModal = ({ float, isOpen, onClose }) => {
+const DataModal = ({ float, isOpen, onClose }: DataModalProps) => {
   if (!isOpen || !float) return null
 
   return (
@@ -423,7 +508,7 @@ const DataModal = ({ float, isOpen, onClose }) => {
                             reversed
                             label={{ value: "Depth (m)", angle: -90, position: "insideLeft" }}
                           />
-                          <Tooltip formatter={(value, name) => [`${value.toFixed(2)}°C`, "Temperature"]} />
+                          <Tooltip formatter={(value: number | string, name) => [`${typeof value === 'number' ? value.toFixed(2) : value}°C`, "Temperature"]} />
                           <Line type="monotone" dataKey="value" stroke="#06b6d4" strokeWidth={2} dot={false} />
                         </LineChart>
                       </ResponsiveContainer>
@@ -451,7 +536,7 @@ const DataModal = ({ float, isOpen, onClose }) => {
                             reversed
                             label={{ value: "Depth (m)", angle: -90, position: "insideLeft" }}
                           />
-                          <Tooltip formatter={(value, name) => [`${value.toFixed(2)} PSU`, "Salinity"]} />
+                          <Tooltip formatter={(value: number | string, name) => [`${typeof value === 'number' ? value.toFixed(2) : value} PSU`, "Salinity"]} />
                           <Line type="monotone" dataKey="value" stroke="#eab308" strokeWidth={2} dot={false} />
                         </LineChart>
                       </ResponsiveContainer>
@@ -478,7 +563,7 @@ const DataModal = ({ float, isOpen, onClose }) => {
                             reversed
                             label={{ value: "Depth (m)", angle: -90, position: "insideLeft" }}
                           />
-                          <Tooltip formatter={(value, name) => [`${value.toFixed(1)} dbar`, "Pressure"]} />
+                          <Tooltip formatter={(value: number | string, name) => [`${typeof value === 'number' ? value.toFixed(1) : value} dbar`, "Pressure"]} />
                           <Line type="monotone" dataKey="pressure" stroke="#22c55e" strokeWidth={2} dot={false} />
                         </LineChart>
                       </ResponsiveContainer>
@@ -508,7 +593,7 @@ const DataModal = ({ float, isOpen, onClose }) => {
                           <YAxis label={{ value: "Temperature (°C)", angle: -90, position: "insideLeft" }} />
                           <Tooltip
                             labelFormatter={(value) => `Date: ${value}`}
-                            formatter={(value, name) => [`${value.toFixed(2)}°C`, "Temperature"]}
+                            formatter={(value: number | string, name) => [`${typeof value === 'number' ? value.toFixed(2) : value}°C`, "Temperature"]}
                           />
                           <Line type="monotone" dataKey="temperature" stroke="#06b6d4" strokeWidth={2} />
                         </LineChart>
@@ -535,7 +620,7 @@ const DataModal = ({ float, isOpen, onClose }) => {
                           <YAxis label={{ value: "Salinity (PSU)", angle: -90, position: "insideLeft" }} />
                           <Tooltip
                             labelFormatter={(value) => `Date: ${value}`}
-                            formatter={(value, name) => [`${value.toFixed(2)} PSU`, "Salinity"]}
+                            formatter={(value: number | string, name) => [`${typeof value === 'number' ? value.toFixed(2) : value} PSU`, "Salinity"]}
                           />
                           <Line type="monotone" dataKey="salinity" stroke="#eab308" strokeWidth={2} />
                         </LineChart>
@@ -569,8 +654,10 @@ const DataModal = ({ float, isOpen, onClose }) => {
                           label={{ value: "Temperature (°C)", angle: -90, position: "insideLeft" }}
                         />
                         <Tooltip
-                          formatter={(value, name, props) => [
-                            name === "temperature" ? `${value.toFixed(2)}°C` : `${value.toFixed(2)} PSU`,
+                          formatter={(value: number | string, name, props) => [
+                            name === "temperature" ? 
+                              `${typeof value === 'number' ? value.toFixed(2) : value}°C` : 
+                              `${typeof value === 'number' ? value.toFixed(2) : value} PSU`,
                             name === "temperature" ? "Temperature" : "Salinity",
                           ]}
                           labelFormatter={(label, payload) =>
@@ -603,7 +690,7 @@ const DataModal = ({ float, isOpen, onClose }) => {
                           label={{ value: "Depth (m)", angle: -90, position: "insideLeft" }}
                         />
                         <Tooltip
-                          formatter={(value, name, props) => [`${value.toFixed(1)}°C`, "Temperature"]}
+                          formatter={(value: number | string, name, props) => [`${typeof value === 'number' ? value.toFixed(1) : value}°C`, "Temperature"]}
                           labelFormatter={(label, payload) =>
                             payload?.[0] ? `Lat: ${payload[0].payload.lat}°, Depth: ${payload[0].payload.depth}m` : ""
                           }
@@ -640,7 +727,7 @@ const DataModal = ({ float, isOpen, onClose }) => {
 // Main Dashboard Component
 export default function Dashboard() {
   const [floats, setFloats] = useState(mockFloats)
-  const [messages, setMessages] = useState([
+  const [messages, setMessages] = useState<Message[]>([
     {
       id: 1,
       text: "Welcome to ARGO-AI Explorer! I can help you explore global ocean data from ARGO floats. Try asking me about salinity profiles, temperature data, or specific regions.",
@@ -654,19 +741,20 @@ export default function Dashboard() {
   ])
   const [inputValue, setInputValue] = useState("")
   const [isLoading, setIsLoading] = useState(false)
-  const [selectedFloat, setSelectedFloat] = useState(null)
+  const [selectedFloat, setSelectedFloat] = useState<Float | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isChatOpen, setIsChatOpen] = useState(false)
 
   // Simulate AI response
-  const simulateAIResponse = useCallback(async (query) => {
+  const simulateAIResponse = useCallback(async (query: string) => {
     setIsLoading(true)
 
     // Add user message
-    const userMessage = {
+    const userMessage: Message = {
       id: Date.now(),
       text: query,
       isUser: true,
+      suggestions: [],
     }
     setMessages((prev) => [...prev, userMessage])
 
@@ -682,7 +770,7 @@ export default function Dashboard() {
         })),
       )
 
-      const aiResponse = {
+      const aiResponse: Message = {
         id: Date.now() + 1,
         text: "I've found 7 floats matching your query in the Indian Ocean near the equator. They are now highlighted in yellow on the globe. Click on any highlighted float to see its detailed profile.",
         isUser: false,
@@ -691,7 +779,7 @@ export default function Dashboard() {
       setMessages((prev) => [...prev, aiResponse])
     } else {
       // Generic response
-      const aiResponse = {
+      const aiResponse: Message = {
         id: Date.now() + 1,
         text: "I've processed your query and updated the globe visualization. You can see the relevant ARGO floats highlighted on the map. Click on any float for detailed measurements.",
         isUser: false,
@@ -710,16 +798,16 @@ export default function Dashboard() {
     }
   }
 
-  const handleSuggestionClick = (suggestion) => {
+  const handleSuggestionClick = (suggestion: string) => {
     simulateAIResponse(suggestion)
   }
 
-  const handleFloatClick = (float) => {
+  const handleFloatClick = (float: Float) => {
     setSelectedFloat(float)
     setIsModalOpen(true)
   }
 
-  const handleKeyPress = (e) => {
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       handleSendMessage()
     }
