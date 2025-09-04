@@ -6,3 +6,4 @@ export { DashboardHeader } from './DashboardHeader'
 export { StatsCard } from './StatsCard'
 export { StatsPanel } from './StatsPanel'
 export { GlobeOverlayStats } from './GlobeOverlayStats'
+// Note: OceanMap is not exported here to avoid SSR issues - import it directly where needed

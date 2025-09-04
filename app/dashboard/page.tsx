@@ -1,17 +1,27 @@
 "use client"
 
 import { useState } from "react"
+import dynamic from "next/dynamic"
 import { Float } from "@/types/dashboard"
 import { mockFloats } from "@/lib/mock-data"
 import { useAIChat } from "@/hooks/use-ai-chat"
 import {
-  Globe3D,
   DataModal,
   DashboardHeader,
   StatsPanel,
   GlobeOverlayStats,
   ChatPanel,
 } from "@/components/dashboard"
+
+// Dynamically import OceanMap to avoid SSR issues
+const OceanMap = dynamic(() => import("@/components/dashboard/OceanMap").then(mod => ({ default: mod.OceanMap })), { 
+  ssr: false,
+  loading: () => (
+    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-50/50 to-indigo-100/70">
+      <div className="text-slate-600">Loading map...</div>
+    </div>
+  )
+})
 
 // Main Dashboard Component
 export default function Dashboard() {
@@ -63,7 +73,7 @@ export default function Dashboard() {
         <div className="flex-1 flex flex-col min-w-0 min-h-0">
           {/* Globe Container */}
           <div className="flex-1 relative bg-gradient-to-br from-blue-50/50 to-indigo-100/70 m-4 mb-2 rounded-2xl shadow-lg border border-white/50 backdrop-blur-sm overflow-hidden min-h-0">
-            <Globe3D 
+            <OceanMap 
               floats={floats} 
               selectedFloat={selectedFloat} 
               onFloatClick={handleFloatClick} 
