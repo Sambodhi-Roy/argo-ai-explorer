@@ -13,6 +13,7 @@ export const Globe3D = ({ floats, selectedFloat, onFloatClick, focusRegion }: Gl
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null)
   const hoveredPointRef = useRef<THREE.Mesh | null>(null)
   const tooltipRef = useRef<HTMLDivElement | null>(null)
+  const isHoveredRef = useRef<boolean>(false)
   const controlsRef = useRef({
     isDragging: false,
     previousMousePosition: { x: 0, y: 0 },
@@ -260,9 +261,31 @@ export const Globe3D = ({ floats, selectedFloat, onFloatClick, focusRegion }: Gl
       }
     }
 
+    const handleMouseEnter = () => {
+      isHoveredRef.current = true
+    }
+
+    const handleMouseLeave = () => {
+      isHoveredRef.current = false
+      // Reset any hovered point when leaving the globe area
+      if (hoveredPointRef.current) {
+        hoveredPointRef.current.scale.setScalar(hoveredPointRef.current.userData.originalScale)
+        hoveredPointRef.current = null
+      }
+      // Hide tooltip
+      if (tooltipRef.current) {
+        tooltipRef.current.style.display = "none"
+      }
+      if (rendererRef.current) {
+        rendererRef.current.domElement.style.cursor = "grab"
+      }
+    }
+
     renderer.domElement.style.cursor = "grab"
     renderer.domElement.addEventListener("mousedown", handleMouseDown, { passive: false })
     renderer.domElement.addEventListener("wheel", handleWheel, { passive: false })
+    renderer.domElement.addEventListener("mouseenter", handleMouseEnter)
+    renderer.domElement.addEventListener("mouseleave", handleMouseLeave)
     document.addEventListener("mousemove", handleMouseMove, { passive: false })
     document.addEventListener("mouseup", handleMouseUp, { passive: false })
     renderer.domElement.addEventListener("click", handleClick)
@@ -271,7 +294,8 @@ export const Globe3D = ({ floats, selectedFloat, onFloatClick, focusRegion }: Gl
     const animate = () => {
       requestAnimationFrame(animate)
 
-      if (!controlsRef.current.isDragging) {
+      // Only auto-rotate when not being hovered and not being dragged
+      if (!controlsRef.current.isDragging && !isHoveredRef.current) {
         globe.rotation.y += 0.001
         // Update float points with auto-rotation
         floatPointsRef.current.forEach((point, index) => {
@@ -291,15 +315,17 @@ export const Globe3D = ({ floats, selectedFloat, onFloatClick, focusRegion }: Gl
 
             originalPos.applyMatrix4(rotationMatrix)
             point.position.copy(originalPos)
-
-            // Add subtle pulsing animation for highlighted points
-            if (floats[index]?.isHighlighted) {
-              const pulse = Math.sin(Date.now() * 0.003) * 0.1 + 1.2
-              point.scale.setScalar(pulse)
-            }
           }
         })
       }
+
+      // Handle pulsing animation for highlighted points (independent of rotation)
+      floatPointsRef.current.forEach((point, index) => {
+        if (point && floats[index]?.isHighlighted) {
+          const pulse = Math.sin(Date.now() * 0.003) * 0.1 + 1.2
+          point.scale.setScalar(pulse)
+        }
+      })
 
       renderer.render(scene, camera)
     }
@@ -331,6 +357,8 @@ export const Globe3D = ({ floats, selectedFloat, onFloatClick, focusRegion }: Gl
       document.removeEventListener("mouseup", handleMouseUp)
       if (rendererRef.current?.domElement) {
         rendererRef.current.domElement.removeEventListener("wheel", handleWheel)
+        rendererRef.current.domElement.removeEventListener("mouseenter", handleMouseEnter)
+        rendererRef.current.domElement.removeEventListener("mouseleave", handleMouseLeave)
       }
       if (tooltipRef.current) {
         document.body.removeChild(tooltipRef.current)
