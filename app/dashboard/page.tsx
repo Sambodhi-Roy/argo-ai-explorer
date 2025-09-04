@@ -814,7 +814,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen w-screen bg-slate-900 text-white overflow-x-hidden">
+    <div className="min-h-screen w-screen bg-slate-900 text-white">
       {/* Header */}
       <header className="h-16 border-b border-white/10 bg-black/20 backdrop-blur-md flex items-center justify-between px-6 z-10 relative">
         <div className="flex items-center gap-3">
@@ -827,8 +827,13 @@ export default function Dashboard() {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setIsChatOpen(!isChatOpen)}
-            className="border-white/20 text-white hover:bg-white/10 bg-transparent"
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setIsChatOpen(prev => !prev);
+            }}
+            className="border-white/20 text-white hover:bg-white/10 bg-transparent relative z-50"
           >
             <MessageSquare className="h-4 w-4 mr-2" />
             AI Chat
@@ -837,9 +842,9 @@ export default function Dashboard() {
       </header>
 
       {/* Main Content */}
-      <div className="flex min-h-[calc(100vh-4rem)]">
+      <div className="flex min-h-[calc(100vh-4rem)] w-full">
         {/* Left Panel - Globe and Stats */}
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col min-w-0">
           {/* Globe Container */}
           <div className="h-[calc(100vh-12rem)] relative">
             <Globe3D floats={floats} selectedFloat={selectedFloat} onFloatClick={handleFloatClick} />
@@ -897,63 +902,63 @@ export default function Dashboard() {
             </div>
           </div>
         </div>
+      </div>
 
-        {/* Right Panel - Chat (Collapsible) */}
-        {isChatOpen && (
-          <div className="w-96 border-l border-white/10 bg-black/20 backdrop-blur-md flex flex-col min-h-[calc(100vh-4rem)]">
-            {/* Chat Header */}
-            <div className="p-4 border-b border-white/10 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <MessageSquare className="h-5 w-5 text-cyan-400" />
-                <span className="font-semibold text-white">AI Assistant</span>
-              </div>
+      {/* Right Panel - Chat (Collapsible) */}
+      {isChatOpen && (
+        <div className="fixed top-16 right-0 w-96 h-[calc(100vh-4rem)] border-l-2 border-cyan-400 bg-slate-800 flex flex-col z-50 shadow-xl">
+          {/* Chat Header */}
+          <div className="p-4 border-b border-white/10 flex items-center justify-between bg-slate-700">
+            <div className="flex items-center gap-2">
+              <MessageSquare className="h-5 w-5 text-cyan-400" />
+              <span className="font-semibold text-white">AI Assistant</span>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsChatOpen(false)}
+              className="text-white hover:bg-white/10"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+
+          {/* Chat Messages */}
+          <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            {messages.map((message) => (
+              <ChatMessage
+                key={message.id}
+                message={message.text}
+                isUser={message.isUser}
+                suggestions={message.suggestions}
+                onSuggestionClick={handleSuggestionClick}
+              />
+            ))}
+            {isLoading && <ChatMessage isLoading={true} />}
+          </div>
+
+          {/* Chat Input */}
+          <div className="p-4 border-t border-white/10">
+            <div className="flex gap-2">
+              <Input
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                onKeyPress={handleKeyPress}
+                placeholder="Ask about ARGO float data..."
+                className="flex-1 bg-white/10 border-white/20 text-white placeholder:text-gray-400"
+                disabled={isLoading}
+              />
               <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setIsChatOpen(false)}
-                className="text-white hover:bg-white/10"
+                onClick={handleSendMessage}
+                disabled={!inputValue.trim() || isLoading}
+                className="bg-cyan-600 hover:bg-cyan-700"
               >
-                <X className="h-4 w-4" />
+                <Send className="h-4 w-4" />
               </Button>
             </div>
-
-            {/* Chat Messages */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
-              {messages.map((message) => (
-                <ChatMessage
-                  key={message.id}
-                  message={message.text}
-                  isUser={message.isUser}
-                  suggestions={message.suggestions}
-                  onSuggestionClick={handleSuggestionClick}
-                />
-              ))}
-              {isLoading && <ChatMessage isLoading={true} />}
-            </div>
-
-            {/* Chat Input */}
-            <div className="p-4 border-t border-white/10">
-              <div className="flex gap-2">
-                <Input
-                  value={inputValue}
-                  onChange={(e) => setInputValue(e.target.value)}
-                  onKeyPress={handleKeyPress}
-                  placeholder="Ask about ARGO float data..."
-                  className="flex-1 bg-white/10 border-white/20 text-white placeholder:text-gray-400"
-                  disabled={isLoading}
-                />
-                <Button
-                  onClick={handleSendMessage}
-                  disabled={!inputValue.trim() || isLoading}
-                  className="bg-cyan-600 hover:bg-cyan-700"
-                >
-                  <Send className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Data Visualization Modal */}
       <DataModal float={selectedFloat} isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
