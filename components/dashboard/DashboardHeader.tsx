@@ -7,11 +7,11 @@ import { DashboardHeaderProps } from "@/types/dashboard"
 
 export const DashboardHeader = ({ isChatOpen, onToggleChat }: DashboardHeaderProps) => {
   return (
-    <header className="h-16 border-b border-white/10 bg-black/20 backdrop-blur-md flex items-center justify-between px-6 z-10 relative">
+    <header className="h-16 border-b border-slate-200 bg-white/80 backdrop-blur-md flex items-center justify-between px-6 z-10 relative shadow-sm">
       <div className="flex items-center gap-3">
         <Link href="/" className="flex items-center gap-3">
-          <Waves className="h-8 w-8 text-cyan-400" />
-          <span className="text-xl font-bold text-white">ARGO-AI Explorer</span>
+          <Waves className="h-8 w-8 text-blue-600" />
+          <span className="text-xl font-bold text-slate-800">ARGO-AI Explorer</span>
         </Link>
       </div>
       <div className="flex items-center gap-2">
@@ -24,7 +24,7 @@ export const DashboardHeader = ({ isChatOpen, onToggleChat }: DashboardHeaderPro
             e.stopPropagation();
             onToggleChat();
           }}
-          className="border-white/20 text-white hover:bg-white/10 bg-transparent relative z-50"
+          className="border-slate-300 text-slate-700 hover:bg-slate-100 bg-white relative z-50"
         >
           <MessageSquare className="h-4 w-4 mr-2" />
           AI Chat

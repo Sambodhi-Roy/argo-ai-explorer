@@ -36,7 +36,7 @@ export const Globe3D = ({ floats, selectedFloat, onFloatClick, focusRegion }: Gl
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true })
 
     renderer.setSize(mountRef.current.clientWidth, mountRef.current.clientHeight)
-    renderer.setClearColor(0x000000, 0)
+    renderer.setClearColor(0xffffff, 0) // White clear color with full transparency
     mountRef.current.appendChild(renderer.domElement)
 
     // Create tooltip element
@@ -51,11 +51,11 @@ export const Globe3D = ({ floats, selectedFloat, onFloatClick, focusRegion }: Gl
     // Create globe
     const geometry = new THREE.SphereGeometry(5, 128, 128) // Higher detail for better zoom experience
     const material = new THREE.MeshPhongMaterial({
-      color: 0x2563eb,
+      color: 0x3b82f6, // Blue-500 for light theme
       transparent: true,
       opacity: 0.8,
       shininess: 100,
-      specular: 0x1a4f8a,
+      specular: 0x2563eb, // Blue-600 for specular
     })
     const globe = new THREE.Mesh(geometry, material)
     scene.add(globe)
@@ -170,7 +170,7 @@ export const Globe3D = ({ floats, selectedFloat, onFloatClick, focusRegion }: Gl
             if (tooltipRef.current) {
               const floatData = hoveredPoint.userData.floatData
               tooltipRef.current.innerHTML = `
-                <div class="bg-slate-800 text-white p-2 rounded shadow-lg text-sm border border-slate-600">
+                <div class="bg-white text-slate-800 p-2 rounded shadow-lg text-sm border border-slate-300">
                   <div class="font-semibold">Float ${floatData.id}</div>
                   <div>Lat: ${floatData.lat.toFixed(2)}°</div>
                   <div>Lon: ${floatData.lon.toFixed(2)}°</div>

@@ -50,7 +50,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen w-screen bg-slate-900 text-white">
+    <div className="min-h-screen w-screen bg-slate-50 text-slate-900">
       {/* Header */}
       <DashboardHeader 
         isChatOpen={isChatOpen} 
@@ -62,7 +62,7 @@ export default function Dashboard() {
         {/* Left Panel - Globe and Stats */}
         <div className="flex-1 flex flex-col min-w-0">
           {/* Globe Container */}
-          <div className="h-[calc(100vh-12rem)] relative">
+          <div className="h-[calc(100vh-12rem)] relative bg-gradient-to-br from-blue-50 to-indigo-100">
             <Globe3D 
               floats={floats} 
               selectedFloat={selectedFloat} 

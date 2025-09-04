@@ -27,7 +27,7 @@ export const DataModal = ({ float, isOpen, onClose }: DataModalProps) => {
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
             <CardTitle className="flex items-center gap-2">
-              <Waves className="h-5 w-5 text-cyan-400" />
+              <Waves className="h-5 w-5 text-blue-600" />
               Float {float.id} - Scientific Data Analysis
             </CardTitle>
             <p className="text-sm text-muted-foreground">

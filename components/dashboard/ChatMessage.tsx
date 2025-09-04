@@ -8,7 +8,7 @@ export const ChatMessage = ({ message, isUser, isLoading, suggestions, onSuggest
   if (isLoading) {
     return (
       <div className="flex items-center space-x-2 mb-4">
-        <Loader2 className="h-4 w-4 animate-spin text-cyan-400" />
+        <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
         <span className="text-sm text-muted-foreground">AI is thinking...</span>
       </div>
     )
