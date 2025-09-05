@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState, useMemo } from "react"
+import { useEffect, useState, useMemo, useRef } from "react"
 import { Float } from "@/types/dashboard"
 
 interface OceanMapProps {
@@ -10,121 +10,80 @@ interface OceanMapProps {
   focusRegion?: string
 }
 
-interface DeviceDot {
-  id: string
-  lat: number
-  lon: number
-  status: "active" | "inactive"
-}
-
-// Hardcoded ocean bounding boxes for lightweight mode
-const OCEAN_REGIONS = {
-  pacific: [
-    { lat: 60, lon: -180 }, { lat: 60, lon: -100 },
-    { lat: -60, lon: -100 }, { lat: -60, lon: -180 }
-  ],
-  atlantic: [
-    { lat: 70, lon: -80 }, { lat: 70, lon: 20 },
-    { lat: -60, lon: 20 }, { lat: -60, lon: -80 }
-  ],
-  indian: [
-    { lat: 30, lon: 20 }, { lat: 30, lon: 120 },
-    { lat: -60, lon: 120 }, { lat: -60, lon: 20 }
-  ]
-}
-
-// Generate random point within ocean bounding box
-const generateRandomOceanPoint = (useAccurateMode: boolean): { lat: number; lon: number } => {
-  if (!useAccurateMode) {
-    // Lightweight mode: use hardcoded ocean regions
-    const regions = Object.values(OCEAN_REGIONS)
-    const region = regions[Math.floor(Math.random() * regions.length)]
-    
-    const minLat = Math.min(...region.map(p => p.lat))
-    const maxLat = Math.max(...region.map(p => p.lat))
-    const minLon = Math.min(...region.map(p => p.lon))
-    const maxLon = Math.max(...region.map(p => p.lon))
-    
-    return {
-      lat: minLat + Math.random() * (maxLat - minLat),
-      lon: minLon + Math.random() * (maxLon - minLon)
-    }
-  } else {
-    // Accurate mode: generate truly random ocean points
-    const oceanAreas = [
-      // Pacific Ocean
-      { latRange: [-60, 60], lonRange: [-180, -100] },
-      { latRange: [-60, 60], lonRange: [120, 180] },
-      // Atlantic Ocean
-      { latRange: [-60, 70], lonRange: [-80, 20] },
-      // Indian Ocean
-      { latRange: [-60, 30], lonRange: [20, 120] },
-      // Arctic Ocean
-      { latRange: [60, 85], lonRange: [-180, 180] },
-      // Southern Ocean
-      { latRange: [-85, -60], lonRange: [-180, 180] }
-    ]
-    
-    const area = oceanAreas[Math.floor(Math.random() * oceanAreas.length)]
-    return {
-      lat: area.latRange[0] + Math.random() * (area.latRange[1] - area.latRange[0]),
-      lon: area.lonRange[0] + Math.random() * (area.lonRange[1] - area.lonRange[0])
-    }
-  }
-}
-
-// Check if point is in ocean
-const isPointInOcean = (lat: number, lon: number): boolean => {
-  // Simplified check using ocean regions
-  for (const region of Object.values(OCEAN_REGIONS)) {
-    const minLat = Math.min(...region.map(p => p.lat))
-    const maxLat = Math.max(...region.map(p => p.lat))
-    const minLon = Math.min(...region.map(p => p.lon))
-    const maxLon = Math.max(...region.map(p => p.lon))
-    
-    if (lat >= minLat && lat <= maxLat && lon >= minLon && lon <= maxLon) {
-      return true
-    }
-  }
-  return false
-}
-
 const LeafletMap = ({ floats, selectedFloat, onFloatClick }: OceanMapProps) => {
-  const [useAccurateMode, setUseAccurateMode] = useState(false)
-  const [deviceDots, setDeviceDots] = useState<DeviceDot[]>([])
+  const mapRef = useRef<any>(null)
+  const mapContainerRef = useRef<HTMLDivElement>(null)
 
-  // Generate device dots
-  const generateDeviceDots = useMemo(() => {
-    const dots: DeviceDot[] = []
-    let attempts = 0
-    const maxAttempts = 200
-    
-    while (dots.length < 50 && attempts < maxAttempts) {
-      const point = generateRandomOceanPoint(useAccurateMode)
-      
-      if (isPointInOcean(point.lat, point.lon)) {
-        dots.push({
-          id: `device-${dots.length + 1}`,
-          lat: point.lat,
-          lon: point.lon,
-          status: Math.random() > 0.3 ? "active" : "inactive"
-        })
-      }
-      attempts++
-    }
-    
-    return dots
-  }, [useAccurateMode])
+  // Predefined ARGO float coordinates
+  const argoCoordinates = [
+    { lat: 41.242041149968145, lon: 169.80174269604066 },
+    { lat: -16.632799219509792, lon: 112.42996957985378 },
+    { lat: 5.734533042265042, lon: 164.93872562445455 },
+    { lat: 18.575038696619103, lon: -28.23210091310696 },
+    { lat: 39.79716788492594, lon: -41.57015262074455 },
+    { lat: -40.89691697412366, lon: -173.3377754176046 },
+    { lat: -9.970232931413662, lon: 96.85218783652795 },
+    { lat: 16.367700440381597, lon: 75.92430181126585 },
+    { lat: -69.76907409074383, lon: -171.38366524390472 },
+    { lat: -70.55177377816105, lon: 90.1400808605357 },
+    { lat: 34.49826696700637, lon: 173.88292811339153 },
+    { lat: 25.187657202218332, lon: -41.66251153764463 },
+    { lat: 60.12033555796995, lon: 5.319744869272256 },
+    { lat: -55.06066230286733, lon: 61.039769004029296 },
+    { lat: 29.937892090991184, lon: 90.9447960298105 },
+    { lat: 53.75067726509383, lon: 72.7751781232156 },
+    { lat: -69.85812225892965, lon: -166.43053497546867 },
+    { lat: -40.3923942266764, lon: 167.46590856102438 },
+    { lat: -69.27732499837218, lon: -22.43105086751686 },
+    { lat: 76.89203926754226, lon: -42.696542781342686 },
+    { lat: 35.23412282159006, lon: 127.03697480654824 },
+    { lat: 63.654909991056684, lon: 32.75707843922618 },
+    { lat: -5.454437264127563, lon: 143.90787665253634 },
+    { lat: -66.0144121362892, lon: 19.097945777698015 },
+    { lat: 9.732617659901308, lon: -30.881350262029684 },
+    { lat: 6.855087568743443, lon: -177.72977657605432 },
+    { lat: 19.885971092343695, lon: -42.26220368524031 },
+    { lat: -43.01218371438864, lon: -9.081492090108725 },
+    { lat: -41.281832129921966, lon: 26.363144102360764 },
+    { lat: -10.226581509771066, lon: -30.247987889859303 },
+    { lat: -67.17547419487899, lon: -104.39904977805789 },
+    { lat: -17.532190669839935, lon: -40.767943351263625 },
+    { lat: 47.436840368454085, lon: -22.237619904916954 },
+    { lat: 58.63943425855484, lon: 142.73644990446059 },
+    { lat: 47.035682434229514, lon: 123.69998949374263 },
+    { lat: -28.788066456270144, lon: 95.02491796125213 },
+    { lat: -74.39333061475568, lon: 90.49413946810887 },
+    { lat: -57.062657966196596, lon: -25.59974189878332 },
+    { lat: 32.39572098351117, lon: -170.72483972061667 },
+    { lat: -76.01072194459115, lon: 105.03583436761505 },
+    { lat: -13.063114672311968, lon: 61.79820197697484 },
+    { lat: 32.3540440464148, lon: -26.08622673079128 },
+    { lat: -60.43913624380927, lon: 161.9794114690519 },
+    { lat: 71.16347225182784, lon: 35.1826237049801 },
+    { lat: -71.56741756959073, lon: -152.0515725677506 },
+    { lat: 57.315887572901346, lon: -39.50451230524959 },
+    { lat: -20.527478763309333, lon: 73.48016596774744 },
+    { lat: 57.95646635763552, lon: 69.78927884636582 },
+    { lat: 48.535843222465274, lon: -26.837701175010693 },
+    { lat: -38.16428594294629, lon: -179.32830179551348 }
+  ]
 
-  useEffect(() => {
-    setDeviceDots(generateDeviceDots)
-  }, [generateDeviceDots])
+  // Create ARGO float objects with the predefined coordinates
+  const argoFloats = useMemo(() => {
+    return argoCoordinates.map((coord, index) => ({
+      id: `ARGO-${String(index + 1).padStart(3, '0')}`,
+      lat: coord.lat,
+      lon: coord.lon,
+      lastReported: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000), // Random date within last 30 days
+      isHighlighted: false,
+      trajectory: [] // Empty trajectory for now
+    }))
+  }, [])
 
   useEffect(() => {
     // Import and initialize Leaflet dynamically
     const initializeMap = async () => {
       const L = (await import('leaflet')).default
-      const { MapContainer, TileLayer, CircleMarker, Popup } = await import('react-leaflet')
       
       // Fix for default markers in Next.js
       delete (L.Icon.Default.prototype as any)._getIconUrl
@@ -134,17 +93,27 @@ const LeafletMap = ({ floats, selectedFloat, onFloatClick }: OceanMapProps) => {
         shadowUrl: require("leaflet/dist/images/marker-shadow.png"),
       })
 
+      // Clean up existing map if it exists
+      if (mapRef.current) {
+        mapRef.current.remove()
+        mapRef.current = null
+      }
+
       // Create map container
       const mapContainer = document.getElementById('map-container')
-      if (mapContainer && !mapContainer.hasChildNodes()) {
+      if (mapContainer) {
+        // Clear any existing content
+        mapContainer.innerHTML = ''
+        
         const map = L.map(mapContainer).setView([20, 0], 2)
+        mapRef.current = map
         
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
           attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         }).addTo(map)
 
-        // Add ARGO float markers
-        floats.forEach((float) => {
+        // Add ARGO float markers (using predefined coordinates)
+        argoFloats.forEach((float) => {
           const isSelected = selectedFloat?.id === float.id
           const marker = L.circleMarker([float.lat, float.lon], {
             color: "#ffffff",
@@ -169,39 +138,6 @@ const LeafletMap = ({ floats, selectedFloat, onFloatClick }: OceanMapProps) => {
           marker.on('mouseout', () => marker.setStyle({ fillOpacity: 0.8 }))
           marker.on('click', () => onFloatClick(float))
         })
-
-        // Add device dots
-        deviceDots.forEach((device) => {
-          const marker = L.circleMarker([device.lat, device.lon], {
-            color: "#ffffff",
-            weight: 2,
-            fillColor: "#0077ff",
-            fillOpacity: 0.7,
-            radius: 6
-          }).addTo(map)
-
-          marker.bindPopup(`
-            <div style="font-size: 12px;">
-              <div style="font-weight: bold;">${device.id}</div>
-              <div style="display: flex; align-items: center; gap: 8px; margin-top: 4px;">
-                <div style="width: 8px; height: 8px; border-radius: 50%; background: ${device.status === 'active' ? '#22c55e' : '#ef4444'};"></div>
-                <span style="text-transform: capitalize;">${device.status}</span>
-              </div>
-              <div style="font-size: 10px; color: #64748b; margin-top: 4px;">
-                ${device.lat.toFixed(4)}, ${device.lon.toFixed(4)}
-              </div>
-            </div>
-          `)
-
-          marker.on('mouseover', () => {
-            marker.setStyle({ fillOpacity: 1 })
-            document.body.style.cursor = "pointer"
-          })
-          marker.on('mouseout', () => {
-            marker.setStyle({ fillOpacity: 0.7 })
-            document.body.style.cursor = "default"
-          })
-        })
       }
     }
 
@@ -209,37 +145,31 @@ const LeafletMap = ({ floats, selectedFloat, onFloatClick }: OceanMapProps) => {
 
     // Global function for popup buttons
     ;(window as any).selectFloat = (floatId: string) => {
-      const float = floats.find(f => f.id === floatId)
+      const float = argoFloats.find(f => f.id === floatId)
       if (float) onFloatClick(float)
     }
 
     return () => {
-      // Cleanup
-      const mapContainer = document.getElementById('map-container')
-      if (mapContainer) {
-        mapContainer.innerHTML = ''
+      // Cleanup map instance
+      if (mapRef.current) {
+        mapRef.current.remove()
+        mapRef.current = null
       }
+      
+      // Clear global function
+      delete (window as any).selectFloat
     }
-  }, [floats, selectedFloat, deviceDots, onFloatClick])
+  }, [argoFloats, selectedFloat, onFloatClick])
 
   return (
     <div className="w-full h-full relative">
-      {/* Controls */}
+      {/* Stats */}
       <div className="absolute top-4 right-4 z-[1000] bg-white/90 backdrop-blur-sm rounded-lg p-3 shadow-lg border border-white/50">
-        <div className="flex items-center gap-2">
-          <input
-            type="checkbox"
-            id="accurateMode"
-            checked={useAccurateMode}
-            onChange={(e) => setUseAccurateMode(e.target.checked)}
-            className="w-4 h-4"
-          />
-          <label htmlFor="accurateMode" className="text-sm font-medium text-slate-700">
-            Accurate Mode
-          </label>
+        <div className="text-sm font-medium text-slate-700">
+          ARGO Floats
         </div>
         <div className="text-xs text-slate-500 mt-1">
-          {deviceDots.length} devices shown
+          {argoFloats.length} floats shown
         </div>
       </div>
 
